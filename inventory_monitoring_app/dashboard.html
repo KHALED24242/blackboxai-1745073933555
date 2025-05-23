@@ -53,37 +53,77 @@
     </footer>
 
     <script>
-        // Placeholder for fetching and updating dashboard data
         function fetchDashboardData() {
-            // TODO: Implement API calls to backend to fetch real data
-            const lowStock = ['Product A - 2 units', 'Product B - 1 unit'];
-            const mostDemanded = ['Product C', 'Product A', 'Product D'];
-            const leastDemanded = ['Product B', 'Product E'];
-
             const lowStockList = document.getElementById('low-stock-list');
             const mostDemandedList = document.getElementById('most-demanded-list');
             const leastDemandedList = document.getElementById('least-demanded-list');
 
-            lowStockList.innerHTML = '';
-            lowStock.forEach(item => {
-                const li = document.createElement('li');
-                li.textContent = item;
-                lowStockList.appendChild(li);
-            });
+            // Clear previous content and show loading state
+            lowStockList.innerHTML = '<li>Loading...</li>';
+            mostDemandedList.innerHTML = '<li>Loading...</li>';
+            leastDemandedList.innerHTML = '<li>Loading...</li>';
 
-            mostDemandedList.innerHTML = '';
-            mostDemanded.forEach(item => {
-                const li = document.createElement('li');
-                li.textContent = item;
-                mostDemandedList.appendChild(li);
-            });
+            // Fetch Low Stock Data
+            fetch('http://localhost:5000/api/low_stock')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    lowStockList.innerHTML = ''; // Clear loading message
+                    if (data.length === 0) {
+                        lowStockList.innerHTML = '<li>No low stock products.</li>';
+                    } else {
+                        data.forEach(item => {
+                            const li = document.createElement('li');
+                            li.textContent = `${item.product_name} - ${item.quantity} units`;
+                            lowStockList.appendChild(li);
+                        });
+                    }
+                })
+                .catch(error => {
+                    lowStockList.innerHTML = '<li>Error loading data.</li>';
+                    console.error('Error fetching low stock data:', error);
+                });
 
-            leastDemandedList.innerHTML = '';
-            leastDemanded.forEach(item => {
-                const li = document.createElement('li');
-                li.textContent = item;
-                leastDemandedList.appendChild(li);
-            });
+            // Fetch Demand Data
+            fetch('http://localhost:5000/api/demand')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    mostDemandedList.innerHTML = ''; // Clear loading message
+                    if (data.most_demanded.length === 0) {
+                        mostDemandedList.innerHTML = '<li>No data for most demanded products.</li>';
+                    } else {
+                        data.most_demanded.forEach(item => {
+                            const li = document.createElement('li');
+                            li.textContent = `${item.product_name} (Demand: ${item.demand_count})`;
+                            mostDemandedList.appendChild(li);
+                        });
+                    }
+
+                    leastDemandedList.innerHTML = ''; // Clear loading message
+                    if (data.least_demanded.length === 0) {
+                        leastDemandedList.innerHTML = '<li>No data for least demanded products.</li>';
+                    } else {
+                        data.least_demanded.forEach(item => {
+                            const li = document.createElement('li');
+                            li.textContent = `${item.product_name} (Demand: ${item.demand_count})`;
+                            leastDemandedList.appendChild(li);
+                        });
+                    }
+                })
+                .catch(error => {
+                    mostDemandedList.innerHTML = '<li>Error loading demand data.</li>';
+                    leastDemandedList.innerHTML = '<li>Error loading demand data.</li>';
+                    console.error('Error fetching demand data:', error);
+                });
         }
 
         fetchDashboardData();
